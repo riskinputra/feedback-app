@@ -2,7 +2,8 @@ import { v4 as uuidv4 } from "uuid";
 import Axios from "axios";
 import { createContext, useState, useEffect } from "react";
 
-Axios.defaults.baseURL = "http://localhost:6003";
+Axios.defaults.headers.post['Content-Type'] = "application/json";
+
 const FeedbackContext = createContext();
 
 export const FeedbackProvider = ({ children }) => {
@@ -19,7 +20,7 @@ export const FeedbackProvider = ({ children }) => {
 
   const fetchFeedback = async () => {
     try {
-      const { data } = await Axios.get(`feedback?_sort=id&_order=desc`);
+      const { data } = await Axios.get(`/feedback?_sort=id&_order=desc`);
 
       setFeedback(data);
       setIsLoading(false);
@@ -28,20 +29,22 @@ export const FeedbackProvider = ({ children }) => {
     }
   };
 
-  const addFeedback = (newFeedback) => {
-    newFeedback.id = uuidv4();
-    setFeedback([newFeedback, ...feedback]);
+  const addFeedback = async (newFeedback) => {
+    const { data } = await Axios.post('/feedback', newFeedback)
+    setFeedback([data, ...feedback]);
   };
 
-  const deleteFeedback = (id) => {
+  const deleteFeedback = async (id) => {
     if (window.confirm("Are you sure you want ro delete?")) {
+      await Axios.delete(`/feedback/${id}`)
       setFeedback(feedback.filter((item) => item.id !== id));
     }
   };
 
-  const updateFeedback = (id, updItem) => {
+  const updateFeedback = async (id, updItem) => {
+    const { data } = await Axios.patch(`/feedback/${id}`, updItem)
     setFeedback(
-      feedback.map((item) => (item.id === id ? { ...item, ...updItem } : item))
+      feedback.map((item) => (item.id === id ? { ...item, ...data } : item))
     );
   };
 
